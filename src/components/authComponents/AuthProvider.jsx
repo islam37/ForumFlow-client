@@ -8,6 +8,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged,
+  updateProfile, 
 } from "firebase/auth";
 
 const AuthProvider = ({ children }) => {
@@ -16,6 +17,40 @@ const AuthProvider = ({ children }) => {
   const [operationLoading, setOperationLoading] = useState(false);
 
   const googleProvider = new GoogleAuthProvider();
+
+  // ADD THIS FUNCTION - Profile Update
+  const updateUserProfile = async (profileData) => {
+    setOperationLoading(true);
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No user is currently logged in");
+      }
+
+      console.log("Updating profile with:", profileData);
+      
+      // Update profile in Firebase Auth
+      await updateProfile(currentUser, {
+        displayName: profileData.displayName,
+        photoURL: profileData.photoURL
+      });
+
+      // Update local state to reflect changes immediately
+      setUser({
+        ...currentUser,
+        displayName: profileData.displayName,
+        photoURL: profileData.photoURL
+      });
+
+      console.log("Profile updated successfully");
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    } finally {
+      setOperationLoading(false);
+    }
+  };
 
   // Signup with email and password
   const signUp = async (email, password) => {
@@ -59,13 +94,12 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout - Fixed implementation
+  // Logout
   const logOut = async () => {
     try {
       setOperationLoading(true);
       await signOut(auth);
       console.log("Logout successful");
-      // Note: onAuthStateChanged will automatically set user to null
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -74,7 +108,7 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Track user authentication state - FIXED
+  // Track user authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       console.log("Auth state changed:", currentUser);
@@ -83,7 +117,6 @@ const AuthProvider = ({ children }) => {
       setOperationLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
@@ -95,6 +128,7 @@ const AuthProvider = ({ children }) => {
     login,
     loginWithGoogle,
     logOut,
+    updateUserProfile, 
   };
 
   return (

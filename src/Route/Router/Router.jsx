@@ -4,6 +4,7 @@ import Home from "../../Pages/Home";
 import Errorpage from "../../components/Shared/Errorpage";
 import Login from "../../components/authComponents/Login";
 import Register from "../../components/authComponents/Register";
+import Profile from "../../components/Shared/Profile";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
         path: "*", // catch-all route
         Component: Errorpage,
       },
+      {
+        path: "/profile",
+        Component: Profile
+      }
     ],
   },
 ]);

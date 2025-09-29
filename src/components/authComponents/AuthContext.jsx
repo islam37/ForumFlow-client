@@ -8,4 +8,5 @@ export const AuthContext = createContext({
   login: () => Promise.reject(new Error("Not implemented")),
   loginWithGoogle: () => Promise.reject(new Error("Not implemented")),
   logOut: () => Promise.reject(new Error("Not implemented")),
+  updateUserProfile: () => Promise.reject(new Error("Not implemented")),
 });
