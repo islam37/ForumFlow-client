@@ -6,17 +6,20 @@ import Footer from '../components/Shared/Footer';
 const RootLayout = () => {
     return (
         <div>
-        
-        <header>
-            <Navbar> </Navbar>
-        </header>
-        <main>
-            <Outlet></Outlet>
-        </main>
+            {/* Header */}
+            <header className="w-full sticky top-0 z-50 bg-white shadow-md">
+                <Navbar />
+            </header>
 
-        <footer>
-           <Footer> </Footer>
-        </footer>
+            {/* Main Content */}
+            <main className="  h-screen">
+                <Outlet />
+            </main>
+
+            {/* Footer */}
+            <footer className="w-full bg-gray-100 mt-auto">
+                <Footer />
+            </footer>
         </div>
     );
 };

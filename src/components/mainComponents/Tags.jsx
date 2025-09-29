@@ -1,5 +1,6 @@
+// components/mainComponents/Tags.jsx
 import React, { useEffect, useState } from "react";
-import AxiosSecure from "../../api/AxiosSecure"; 
+import AxiosSecure from "../../api/AxiosSecure";
 
 const Tags = ({ onTagClick }) => {
   const [tags, setTags] = useState([]);
@@ -29,6 +30,12 @@ const Tags = ({ onTagClick }) => {
             {tag}
           </button>
         ))}
+        <button
+          onClick={() => onTagClick("")} // reset filter
+          className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full hover:bg-gray-200 transition"
+        >
+          All
+        </button>
       </div>
     </div>
   );
