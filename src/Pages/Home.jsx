@@ -1,10 +1,15 @@
 import React from 'react';
+import Banner from '../components/mainComponents/Banner';
+import Tags from '../components/mainComponents/Tags';
+import Announcement from '../components/mainComponents/Announcements';
 
 const Home = () => {
     return (
-        <div>
-            this is home 
-        </div>
+        <>
+            <Banner />
+            <Tags />
+            <Announcement></Announcement>
+        </>
     );
 };
 
