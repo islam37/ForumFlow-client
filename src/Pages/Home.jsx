@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import Banner from "../components/mainComponents/Banner";
 import Tags from "../components/mainComponents/Tags";
 import Announcement from "../components/mainComponents/Announcements";
-import PostsList from "../components/mainComponents/Pagination";
-import PostDetails from "./PostDetails";
+import PostsList from "../components/mainComponents/PostList";
 
 const Home = () => {
   const [selectedTag, setSelectedTag] = useState("");
@@ -11,10 +10,9 @@ const Home = () => {
   return (
     <>
       <Banner />
-
-      <PostDetails></PostDetails>
-      <PostsList />
-      
+      <Tags setSelectedTag={setSelectedTag} />  {/* optional */}
+      <Announcement />  
+      <PostsList selectedTag={selectedTag} />
     </>
   );
 };

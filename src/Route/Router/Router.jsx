@@ -73,7 +73,7 @@ const router = createBrowserRouter([
           { path: "manageUser", element: <ManageUsers></ManageUsers> },
           { path: "announcement", element: <MakeAnuncement></MakeAnuncement>},
           { path: "reported-activities", element: <ReportedActivities></ReportedActivities> },
-          {}
+          
         ]
       }
     ],
