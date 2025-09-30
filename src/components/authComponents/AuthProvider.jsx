@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { AuthContext } from "./AuthContext";
 import { auth } from "../../Firebase/Firebase.Config";
 import {
   createUserWithEmailAndPassword,
@@ -11,6 +10,9 @@ import {
   updateProfile,
 } from "firebase/auth";
 import AxiosSecure from "../../api/AxiosSecure"; 
+import { AuthContext } from "./AuthContext";
+
+
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -23,11 +25,16 @@ const AuthProvider = ({ children }) => {
   // Fetch user role from backend
   const fetchUserRole = async (uid) => {
     try {
-      const res = await AxiosSecure.get(`/users/${uid}`);
-      setRole(res.data.role);
+      console.log("Fetching role for user:", uid);
+      const res = await AxiosSecure.get("/me");
+      console.log("User data:", res.data);
+      setRole(res.data.role || "user");
+      return res.data.role;
     } catch (err) {
       console.error("Failed to fetch role:", err);
-      setRole(null);
+      console.error("Error details:", err.response?.data);
+      setRole("user"); // Default to user role
+      return "user";
     }
   };
 
@@ -59,10 +66,32 @@ const AuthProvider = ({ children }) => {
   };
 
   // Signup with email/password
-  const signUp = async (email, password) => {
+  const signUp = async (email, password, displayName = "Anonymous") => {
     setOperationLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Update profile with display name
+      await updateProfile(userCredential.user, {
+        displayName: displayName
+      });
+
+      console.log("User created in Firebase:", userCredential.user.uid);
+
+      // Create user in MongoDB via your API
+      try {
+        await AxiosSecure.post('/users', {
+          uid: userCredential.user.uid,
+          email: email,
+          name: displayName,
+          role: "user"
+        });
+        console.log("User created in MongoDB");
+      } catch (err) {
+        console.error("Failed to create user in MongoDB:", err);
+        // Continue even if MongoDB creation fails
+      }
+
       return userCredential;
     } catch (error) {
       console.error("Signup error:", error);
@@ -77,6 +106,7 @@ const AuthProvider = ({ children }) => {
     setOperationLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in:", userCredential.user.uid);
       return userCredential;
     } catch (error) {
       console.error("Login error:", error);
@@ -91,6 +121,7 @@ const AuthProvider = ({ children }) => {
     setOperationLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      console.log("Google login successful:", result.user.uid);
       return result;
     } catch (error) {
       console.error("Google login error:", error);
@@ -105,7 +136,9 @@ const AuthProvider = ({ children }) => {
     setOperationLoading(true);
     try {
       await signOut(auth);
+      setUser(null);
       setRole(null);
+      console.log("User logged out");
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -117,14 +150,21 @@ const AuthProvider = ({ children }) => {
   // Track Firebase auth state and fetch role
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log("Auth state changed:", currentUser ? "User logged in" : "No user");
       setUser(currentUser);
-      if (currentUser?.uid) {
-        await fetchUserRole(currentUser.uid); // Fetch role from backend
+      
+      if (currentUser) {
+        console.log("Current user UID:", currentUser.uid);
+        try {
+          await fetchUserRole(currentUser.uid);
+        } catch (err) {
+          console.error("Error in auth state change:", err);
+        }
       } else {
         setRole(null);
       }
+      
       setLoading(false);
-      setOperationLoading(false);
     });
 
     return () => unsubscribe();
@@ -132,7 +172,7 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
-    role,                     // role provided
+    role,                     
     loading,
     operationLoading,
     signUp,
@@ -140,7 +180,7 @@ const AuthProvider = ({ children }) => {
     loginWithGoogle,
     logOut,
     updateUserProfile,
-    fetchUserRole,            // function to manually refresh role
+    fetchUserRole,            
   };
 
   return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;

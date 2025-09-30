@@ -1,8 +1,9 @@
 // components/mainComponents/PostsList.jsx
 import React, { useState, useEffect } from "react";
-import AxiosSecure from "../../api/AxiosSecure";
+import axios from "../../api/Axios";
 import PostCard from "./PostCard";
 import Pagination from "./Pagination";
+import Swal from "sweetalert2";
 
 const PostsList = ({ selectedTag }) => {
   const [posts, setPosts] = useState([]);
@@ -11,27 +12,40 @@ const PostsList = ({ selectedTag }) => {
   const [sort, setSort] = useState("recent");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const params = { page, limit: 5, sort };
-        if (selectedTag) params.tag = selectedTag;
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const params = { page, limit: 5, sort };
+      if (selectedTag) params.tag = selectedTag;
 
-        const { data } = await AxiosSecure.get("/posts", { params });
+      const { data } = await axios.get("/posts", { params });
+
+      if (data.posts && Array.isArray(data.posts)) {
         setPosts(data.posts);
-        setPages(data.pages);
-      } catch (err) {
-        console.error("Failed to fetch posts:", err);
-      } finally {
-        setLoading(false);
+        setPages(data.pages || 1);
+      } else {
+        setPosts([]);
+        setPages(1);
+        console.error("Unexpected posts data:", data);
       }
-    };
+    } catch (err) {
+      console.error("Failed to fetch posts:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to load posts!",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Fetch posts when page, sort, or selectedTag changes
+  useEffect(() => {
     fetchPosts();
   }, [page, sort, selectedTag]);
 
-  // Reset page to 1 if tag changes
+  // Reset page to 1 when tag changes
   useEffect(() => {
     setPage(1);
   }, [selectedTag]);
@@ -50,9 +64,13 @@ const PostsList = ({ selectedTag }) => {
 
       {/* Posts */}
       {loading ? (
-        <p className="text-center">Loading posts...</p>
+        <p className="text-center text-gray-500">Loading posts...</p>
       ) : posts.length > 0 ? (
-        posts.map((post) => <PostCard key={post._id} post={post} />)
+        <div className="space-y-4">
+          {posts.map((post) => (
+            <PostCard key={post._id} post={post} />
+          ))}
+        </div>
       ) : (
         <p className="text-center text-gray-500 mt-4">
           No posts found {selectedTag && `for #${selectedTag}`}
@@ -60,7 +78,9 @@ const PostsList = ({ selectedTag }) => {
       )}
 
       {/* Pagination */}
-      {pages > 1 && <Pagination page={page} pages={pages} onPageChange={setPage} />}
+      {pages > 1 && (
+        <Pagination page={page} pages={pages} onPageChange={setPage} />
+      )}
     </div>
   );
 };

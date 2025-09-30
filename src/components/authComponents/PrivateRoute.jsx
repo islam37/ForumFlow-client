@@ -1,33 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "../authComponents/AuthContext";
-import AxiosSecure from "../../api/AxiosSecure";
 
 const PrivateRoute = ({ requiredRole }) => {
-  const { user, loading } = useContext(AuthContext);
-  const [role, setRole] = useState(null);
-  const [roleLoading, setRoleLoading] = useState(true);
+  const { user, role, loading } = useContext(AuthContext);
 
-  // Fetch role from backend
-  useEffect(() => {
-    if (user) {
-      const fetchRole = async () => {
-        try {
-          const res = await AxiosSecure.get(`/users/${user.uid}`);
-          setRole(res.data.role);
-        } catch (err) {
-          console.error("Failed to fetch user role:", err);
-        } finally {
-          setRoleLoading(false);
-        }
-      };
-      fetchRole();
-    } else {
-      setRoleLoading(false);
-    }
-  }, [user]);
-
-  if (loading || roleLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500 text-lg">Checking authentication...</p>

@@ -12,7 +12,7 @@ const RootLayout = () => {
             </header>
 
             {/* Main Content */}
-            <main className="  h-screen">
+            <main >
                 <Outlet />
             </main>
 

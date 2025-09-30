@@ -3,6 +3,7 @@ import Banner from "../components/mainComponents/Banner";
 import Tags from "../components/mainComponents/Tags";
 import Announcement from "../components/mainComponents/Announcements";
 import PostsList from "../components/mainComponents/Pagination";
+import PostDetails from "./PostDetails";
 
 const Home = () => {
   const [selectedTag, setSelectedTag] = useState("");
@@ -10,9 +11,10 @@ const Home = () => {
   return (
     <>
       <Banner />
-      <Tags onTagClick={setSelectedTag} />
-      <PostsList selectedTag={selectedTag} />
-      <Announcement />
+
+      <PostDetails></PostDetails>
+      <PostsList />
+      
     </>
   );
 };
