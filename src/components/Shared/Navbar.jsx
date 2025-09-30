@@ -127,15 +127,8 @@ const Navbar = () => {
                   </div>
                   {/* Dropdown Items */}
                   <div className="py-2">
-                    {/* Profile Link */}
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors duration-200"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <FiUser className="text-gray-500" />
-                      <span>Profile</span>
-                    </Link>
+                   
+                    
                     <Link
                       to="/dashboard"
                       className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition-colors duration-200"

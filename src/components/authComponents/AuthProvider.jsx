@@ -8,41 +8,47 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged,
-  updateProfile, 
+  updateProfile,
 } from "firebase/auth";
+import AxiosSecure from "../../api/AxiosSecure"; 
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [operationLoading, setOperationLoading] = useState(false);
 
   const googleProvider = new GoogleAuthProvider();
 
-  // ADD THIS FUNCTION - Profile Update
+  // Fetch user role from backend
+  const fetchUserRole = async (uid) => {
+    try {
+      const res = await AxiosSecure.get(`/users/${uid}`);
+      setRole(res.data.role);
+    } catch (err) {
+      console.error("Failed to fetch role:", err);
+      setRole(null);
+    }
+  };
+
+  // Update profile
   const updateUserProfile = async (profileData) => {
     setOperationLoading(true);
     try {
       const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error("No user is currently logged in");
-      }
+      if (!currentUser) throw new Error("No user is currently logged in");
 
-      console.log("Updating profile with:", profileData);
-      
-      // Update profile in Firebase Auth
       await updateProfile(currentUser, {
         displayName: profileData.displayName,
-        photoURL: profileData.photoURL
+        photoURL: profileData.photoURL,
       });
 
-      // Update local state to reflect changes immediately
       setUser({
         ...currentUser,
         displayName: profileData.displayName,
-        photoURL: profileData.photoURL
+        photoURL: profileData.photoURL,
       });
 
-      console.log("Profile updated successfully");
       return true;
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -52,7 +58,7 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Signup with email and password
+  // Signup with email/password
   const signUp = async (email, password) => {
     setOperationLoading(true);
     try {
@@ -66,7 +72,7 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login with email and password
+  // Login with email/password
   const login = async (email, password) => {
     setOperationLoading(true);
     try {
@@ -96,10 +102,10 @@ const AuthProvider = ({ children }) => {
 
   // Logout
   const logOut = async () => {
+    setOperationLoading(true);
     try {
-      setOperationLoading(true);
       await signOut(auth);
-      console.log("Logout successful");
+      setRole(null);
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -108,11 +114,15 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Track user authentication state
+  // Track Firebase auth state and fetch role
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log("Auth state changed:", currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser?.uid) {
+        await fetchUserRole(currentUser.uid); // Fetch role from backend
+      } else {
+        setRole(null);
+      }
       setLoading(false);
       setOperationLoading(false);
     });
@@ -122,20 +132,18 @@ const AuthProvider = ({ children }) => {
 
   const authInfo = {
     user,
+    role,                     // role provided
     loading,
     operationLoading,
     signUp,
     login,
     loginWithGoogle,
     logOut,
-    updateUserProfile, 
+    updateUserProfile,
+    fetchUserRole,            // function to manually refresh role
   };
 
-  return (
-    <AuthContext.Provider value={authInfo}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;
