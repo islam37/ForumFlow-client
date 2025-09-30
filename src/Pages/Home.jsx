@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import React from "react";
 import Banner from "../components/mainComponents/Banner";
-import Tags from "../components/mainComponents/Tags";
-import Announcement from "../components/mainComponents/Announcements";
+
 import PostsList from "../components/mainComponents/PostList";
+import Announcements from "./AnnouncementforUser/Announcements";
 
 const Home = () => {
-  const [selectedTag, setSelectedTag] = useState("");
-
   return (
     <>
       <Banner />
-      <Tags setSelectedTag={setSelectedTag} />  {/* optional */}
-      <Announcement />  
-      <PostsList selectedTag={selectedTag} />
+
+      <p className="text-lg font-semibold mt-6 text-center">Latest Announcements</p>
+
+      <Announcements />
+
+      <PostsList />
     </>
   );
 };

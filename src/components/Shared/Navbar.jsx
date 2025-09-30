@@ -4,7 +4,7 @@ import { AuthContext } from "../authComponents/AuthContext";
 import { FiHome, FiBell, FiSettings, FiLogOut } from "react-icons/fi";
 
 const Navbar = () => {
-  const { user, role, logOut } = useContext(AuthContext); // make sure role is provided from AuthContext
+  const { user, role, logOut } = useContext(AuthContext); 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -37,7 +37,7 @@ const Navbar = () => {
           className="flex items-center gap-3 font-extrabold text-white text-2xl hover:scale-105 transition-transform duration-200"
         >
           <img
-            src="/src/assets/images/Logo.png"
+            src="https://i.ibb.co.com/1JbLzMmB/Logo.png"
             alt="ForumFlow Logo"
             className="h-10 w-10 rounded-full border-2 border-white object-cover"
             onError={(e) => (e.target.src = "/default-avatar.png")}
