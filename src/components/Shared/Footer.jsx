@@ -60,7 +60,7 @@ const Footer = () => {
             <ul className="space-y-3">
               {["Help Center", "Contact Support", "Report Issue", "FAQs"].map((item, idx) => (
                 <li key={idx}>
-                  <a href="#" className="hover:text-white flex items-center gap-2 transition-all duration-300 group">
+                  <a href="contact-support" className="hover:text-white flex items-center gap-2 transition-all duration-300 group">
                     <FaArrowRight className="text-green-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <span>{item}</span>
                   </a>
