@@ -1,143 +1,129 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import AxiosSecure from "../../api/AxiosSecure";
+import { useQuery } from "@tanstack/react-query";
+import PostCard from "../mainComponents/PostCard";
+
+const fetchSearchResults = async (search) => {
+  if (!search.trim()) return { posts: [] };
+  const { data } = await AxiosSecure.get("/search", { params: { tag: search } });
+  return { posts: data || [] };
+};
 
 const Banner = () => {
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const {
+    data: results = { posts: [] },
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["searchPosts", search],
+    queryFn: () => fetchSearchResults(search),
+    enabled: false,
+    retry: 1,
+  });
 
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!search.trim()) return;
-
-    setLoading(true);
-    try {
-      const { data } = await AxiosSecure.get(`/search`, {
-        params: { tag: search },
-      });
-      setResults(data);
-    } catch (err) {
-      console.error("Search failed:", err);
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
+    
+    setHasSearched(true);
+    await refetch();
   };
 
+  const handleTagClick = (tag) => {
+    setSearch(tag);
+    setFocused(false);
+  };
+
+  const popularTags = ["javascript", "react", "design", "programming", "webdev", "css", "nodejs", "python"];
+
+  const showResults = hasSearched && !isLoading && !isFetching;
+  const hasPosts = results?.posts?.length > 0;
+
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="relative w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-pink-500/20 to-rose-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-pink-500/20 rounded-full blur-3xl" />
       </div>
 
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]"></div>
-
-      <div className="relative z-10 py-24 px-6">
-        {/* Main Banner Content */}
+      <div className="relative z-10 py-12 px-4 text-center">
+        {/* Header Section - Compact */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="max-w-4xl mx-auto text-center"
+          className="max-w-2xl mx-auto mb-8"
         >
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8"
-          >
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-sm text-white/80 font-medium">
-              Explore thousands of discussions
-            </span>
-          </motion.div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 mb-4">
+            Discover Posts
+          </h1>
+          <p className="text-white/70 text-sm sm:text-base">
+            Search posts by tags and topics
+          </p>
+        </motion.div>
 
-          {/* Main Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent leading-tight"
-          >
-            Welcome to
-            <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              ForumFlow
-            </span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed"
-          >
-            Discover, discuss, and connect with communities that share your passions and interests
-          </motion.p>
-
-          {/* Premium Search Bar */}
-          <motion.form
-            onSubmit={handleSearch}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="relative max-w-2xl mx-auto"
-          >
-            <div className={`relative transition-all duration-300 ${isFocused ? 'scale-105' : 'scale-100'}`}>
-              {/* Search Input Container */}
-              <div className={`relative bg-white/10 backdrop-blur-xl border ${
-                isFocused ? 'border-blue-400/50 shadow-2xl shadow-blue-500/20' : 'border-white/20 shadow-lg'
-              } rounded-2xl transition-all duration-300 overflow-hidden`}>
+        {/* Search Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-lg mx-auto"
+        >
+          <form onSubmit={handleSearch} className="relative">
+            <div
+              className={`bg-white/10 backdrop-blur-xl border ${
+                focused ? "border-blue-400/50" : "border-white/20"
+              } rounded-xl p-1.5 flex items-center transition-all duration-200`}
+            >
+              <div className="flex-1 relative">
                 <input
                   type="text"
-                  placeholder="Search by tags (e.g., javascript, react, design)..."
+                  placeholder="Search tags..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  className="w-full px-6 py-5 bg-transparent text-white placeholder-white/60 outline-none text-lg font-medium"
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setTimeout(() => setFocused(false), 150)}
+                  className="w-full bg-transparent text-white px-3 py-2.5 outline-none text-sm placeholder-white/50"
                 />
-                
-                {/* Search Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="absolute right-2 top-2 bottom-2 px-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:from-gray-500 disabled:to-gray-600 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
-                >
-                  {loading ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      Search
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </span>
-                  )}
-                </button>
               </div>
+              <button
+                type="submit"
+                disabled={isFetching || !search.trim()}
+                className="ml-2 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2.5 rounded-lg font-medium text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm"
+              >
+                {isFetching ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  "Search"
+                )}
+              </button>
+            </div>
 
-              {/* Search Suggestions */}
-              {isFocused && (
+            {/* Tag Suggestions */}
+            <AnimatePresence>
+              {focused && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl"
+                  exit={{ opacity: 0, y: 5 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 z-20"
                 >
-                  <div className="text-white/60 text-sm mb-2">Popular tags:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {['javascript', 'react', 'design', 'programming', 'webdev', 'css'].map((tag) => (
+                  <div className="text-white/60 text-xs mb-2 font-medium">Popular tags:</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {popularTags.map((tag) => (
                       <button
                         key={tag}
-                        onClick={() => setSearch(tag)}
-                        className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-white/80 text-sm transition-colors"
+                        onClick={() => handleTagClick(tag)}
+                        type="button"
+                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-full text-white/80 text-xs transition-colors duration-150 border border-white/10 hover:border-white/30"
                       >
                         #{tag}
                       </button>
@@ -145,124 +131,78 @@ const Banner = () => {
                   </div>
                 </motion.div>
               )}
-            </div>
-          </motion.form>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="flex justify-center gap-8 mt-12 text-white/60"
-          >
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">10K+</div>
-              <div className="text-sm">Active Discussions</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">5K+</div>
-              <div className="text-sm">Community Members</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">500+</div>
-              <div className="text-sm">Daily Posts</div>
-            </div>
-          </motion.div>
+            </AnimatePresence>
+          </form>
         </motion.div>
 
-        {/* Results Section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="max-w-4xl mx-auto mt-16"
-        >
-          {loading ? (
-            <div className="text-center">
-              <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-4">
-                <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-white font-medium">Searching discussions...</span>
-              </div>
-            </div>
-          ) : results.length > 0 ? (
+        {/* Search Results Section */}
+        <div className="max-w-6xl mx-auto mt-8 px-4">
+          {/* Loading State */}
+          {(isLoading || isFetching) && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="grid gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center space-y-3 py-6"
             >
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Found {results.length} results
-                </h2>
-                <p className="text-white/60">For tag: <span className="text-blue-400 font-semibold">#{search}</span></p>
-              </div>
-              
-              {results.map((post, index) => (
-                <motion.div
-                  key={post._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group p-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl hover:border-white/40 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h2 className="font-bold text-xl text-white group-hover:text-blue-200 transition-colors mb-3">
-                        {post.title}
-                      </h2>
-                      <p className="text-white/70 leading-relaxed mb-4">
-                        {post.content}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {post.tags?.map((tag, i) => (
-                          <span
-                            key={i}
-                            className="px-3 py-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 text-blue-300 rounded-full text-sm font-medium"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <p className="text-white/70 text-sm">Searching posts...</p>
             </motion.div>
-          ) : (
-            search && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">No results found</h3>
-                <p className="text-white/60">
-                  No discussions found for tag{" "}
-                  <span className="text-blue-400 font-semibold">#{search}</span>. Try a different tag!
-                </p>
-              </motion.div>
-            )
           )}
-        </motion.div>
-      </div>
 
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10 animate-float">
-        <div className="w-4 h-4 bg-blue-400/30 rounded-full"></div>
-      </div>
-      <div className="absolute top-40 right-20 animate-float" style={{ animationDelay: '1s' }}>
-        <div className="w-6 h-6 bg-purple-400/30 rounded-full"></div>
-      </div>
-      <div className="absolute bottom-40 left-20 animate-float" style={{ animationDelay: '2s' }}>
-        <div className="w-3 h-3 bg-pink-400/30 rounded-full"></div>
+          {/* Error State */}
+          {isError && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center space-y-3 py-6 text-red-300"
+            >
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm font-medium">Failed to load results</p>
+              <p className="text-red-200/80 text-xs">{error?.message || "Please try again"}</p>
+            </motion.div>
+          )}
+
+          {/* Results Grid */}
+          {showResults && hasPosts && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <h2 className="text-xl font-bold text-white text-center">
+                {results.posts.length} result{results.posts.length > 1 ? 's' : ''} for{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  #{search}
+                </span>
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                {results.posts.map((post) => (
+                  <PostCard key={post._id} post={post} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* No Results State */}
+          {showResults && !hasPosts && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center space-y-3 py-8 text-white/70"
+            >
+              <svg className="w-14 h-14 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-lg font-medium">No posts found</p>
+              <p className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-medium">
+                #{search}
+              </p>
+              <p className="text-white/50 text-xs">Try different keywords</p>
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

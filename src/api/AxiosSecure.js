@@ -2,7 +2,7 @@ import axios from "axios";
 import { auth } from "../Firebase/Firebase.Config";
 
 const AxiosSecure = axios.create({
-  baseURL: "https://forum-flow-server.vercel.app/api",
+  baseURL: "http://localhost:3000/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -132,3 +132,5 @@ export default AxiosSecure;
 
 
 //http://localhost:3000/api
+
+//https://forum-flow-server.vercel.app/api
